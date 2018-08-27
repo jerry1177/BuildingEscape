@@ -35,13 +35,26 @@ void UOpenDoor::OpenOrCloseDoor(float OpenAngle)
 void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
+	if (PressurePlate->IsOverlappingActor(ActorThatOpens)) {
+		TimerStarted = false;
+	}
+	
 	if (PressurePlate->IsOverlappingActor(ActorThatOpens) && DoorIsClosed) {
 		OpenOrCloseDoor(OpenAngle);
 		DoorIsClosed = false;
+		
 		UE_LOG(LogTemp, Warning, TEXT("Actor opened door"));
 	}
-	else if (!PressurePlate->IsOverlappingActor(ActorThatOpens) && !DoorIsClosed) {
+	else if (!DoorIsClosed && !TimerStarted && !PressurePlate->IsOverlappingActor(ActorThatOpens)) {
+		DoorLastOpenTime = GetWorld()->GetTimeSeconds();
+		TimerStarted = true;
+		UE_LOG(LogTemp, Warning, TEXT("Timer has started"));
+		
+	}
+	else if (!DoorIsClosed && TimerStarted && !PressurePlate->IsOverlappingActor(ActorThatOpens) && GetWorld()->GetRealTimeSeconds() - DoorLastOpenTime > DoorCloseDelay) {
 		OpenOrCloseDoor(-OpenAngle);
+		TimerStarted = false;
 		DoorIsClosed = true;
 		UE_LOG(LogTemp, Warning, TEXT("Actor closed door"));
 	}

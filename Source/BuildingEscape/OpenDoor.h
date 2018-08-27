@@ -34,6 +34,10 @@ public:
 private: 
 	UPROPERTY(VisibleAnywhere)
 		float OpenAngle = 90.0f;
+	UPROPERTY(EditAnywhere)
+		float DoorCloseDelay = 1.0f;
+	
+	float DoorLastOpenTime;
 
 	UPROPERTY(EditAnywhere)
 		ATriggerVolume* PressurePlate;
@@ -42,4 +46,5 @@ private:
 		AActor* ActorThatOpens; // Pawn inherits from actor
 
 	bool DoorIsClosed = true;
+	bool TimerStarted = false;
 };
