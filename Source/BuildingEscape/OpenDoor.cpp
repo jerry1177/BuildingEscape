@@ -10,10 +10,7 @@ UOpenDoor::UOpenDoor()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
-
 
 // Called when the game starts
 void UOpenDoor::BeginPlay()
@@ -21,17 +18,7 @@ void UOpenDoor::BeginPlay()
 	Super::BeginPlay();
 	if(!PressurePlate) {
 		UE_LOG(LogTemp, Error, TEXT("There is no pressure plait assigned to %s"), *GetOwner()->GetName())
-	}
-	// ...
-	
-}
-
-void UOpenDoor::OpenOrCloseDoor(float OpenAngle)
-{
-	AActor* door = GetOwner();
-	FRotator DRotation = door->GetActorRotation();
-	FRotator NewRotation = FRotator(DRotation.Roll, DRotation.Yaw - OpenAngle, DRotation.Pitch);
-	door->SetActorRotation(NewRotation);
+	}	
 }
 
 
@@ -40,25 +27,13 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
-	if (GetTotalMassOfActorsOnPlate() > 50.f) {
-		TimerStarted = false;
-	}
-	
 	if (DoorIsClosed && GetTotalMassOfActorsOnPlate() >= OpenDoorMass) {
-		OpenOrCloseDoor(OpenAngle);
-		DoorIsClosed = false;
-		
+		OnOpen.Broadcast();
+		DoorIsClosed = false;		
 		UE_LOG(LogTemp, Warning, TEXT("Actor opened door"));
 	}
-	else if (!DoorIsClosed && !TimerStarted && GetTotalMassOfActorsOnPlate() <OpenDoorMass) {
-		DoorLastOpenTime = GetWorld()->GetTimeSeconds();
-		TimerStarted = true;
-		UE_LOG(LogTemp, Warning, TEXT("Timer has started"));
-		
-	}
-	else if (!DoorIsClosed && TimerStarted && GetTotalMassOfActorsOnPlate() < OpenDoorMass && GetWorld()->GetRealTimeSeconds() - DoorLastOpenTime > DoorCloseDelay) {
-		OpenOrCloseDoor(-OpenAngle);
-		TimerStarted = false;
+	else if (!DoorIsClosed && GetTotalMassOfActorsOnPlate() < OpenDoorMass) {
+		OnClose.Broadcast();
 		DoorIsClosed = true;
 		UE_LOG(LogTemp, Warning, TEXT("Actor closed door"));
 	}

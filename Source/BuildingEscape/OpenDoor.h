@@ -9,7 +9,10 @@
 #include "GameFramework/PlayerController.h"
 #include "Engine/TriggerVolume.h"
 #include "Engine/World.h"
+//#include "Delegates/Delegate.h"
 #include "OpenDoor.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDoorEvent);
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -25,32 +28,25 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	void OpenOrCloseDoor(float OpenAngle);
-
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	
-
+	UPROPERTY(BlueprintAssignable)
+		FDoorEvent OnOpen;
 		
+	UPROPERTY(BlueprintAssignable)
+		FDoorEvent OnClose;
 private: 
-	UPROPERTY(VisibleAnywhere)
-		float OpenAngle = 90.0f;
-	UPROPERTY(EditAnywhere)
-		float DoorCloseDelay = 1.0f;
 	// Mass needed in order for the door to open (kg)
 	UPROPERTY(EditAnywhere)
 		float OpenDoorMass = 40.0f;
-	
-	float DoorLastOpenTime;
 
 	UPROPERTY(EditAnywhere)
 		ATriggerVolume* PressurePlate = nullptr;
 
 	bool DoorIsClosed = true;
-	bool TimerStarted = false;
-
+	
 	//Returns total mass in kg
 	float GetTotalMassOfActorsOnPlate();
 };
