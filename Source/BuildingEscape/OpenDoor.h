@@ -46,10 +46,7 @@ private:
 	float DoorLastOpenTime;
 
 	UPROPERTY(EditAnywhere)
-		ATriggerVolume* PressurePlate;
-
-	UPROPERTY(EditAnywhere)
-		AActor* ActorThatOpens; // Pawn inherits from actor
+		ATriggerVolume* PressurePlate = nullptr;
 
 	bool DoorIsClosed = true;
 	bool TimerStarted = false;
