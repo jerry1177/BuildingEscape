@@ -2,6 +2,8 @@
 
 #include "OpenDoor.h"
 
+#define OUT
+
 // Sets default values for this component's properties
 UOpenDoor::UOpenDoor()
 {
@@ -17,7 +19,7 @@ UOpenDoor::UOpenDoor()
 void UOpenDoor::BeginPlay()
 {
 	Super::BeginPlay();
-	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
+	
 	// ...
 	
 }
@@ -36,30 +38,38 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
-	if (PressurePlate->IsOverlappingActor(ActorThatOpens)) {
+	if (GetTotalMassOfActorsOnPlate() > 50.f) {
 		TimerStarted = false;
 	}
 	
-	if (PressurePlate->IsOverlappingActor(ActorThatOpens) && DoorIsClosed) {
+	if (DoorIsClosed && GetTotalMassOfActorsOnPlate() >= OpenDoorMass) {
 		OpenOrCloseDoor(OpenAngle);
 		DoorIsClosed = false;
 		
 		UE_LOG(LogTemp, Warning, TEXT("Actor opened door"));
 	}
-	else if (!DoorIsClosed && !TimerStarted && !PressurePlate->IsOverlappingActor(ActorThatOpens)) {
+	else if (!DoorIsClosed && !TimerStarted && GetTotalMassOfActorsOnPlate() <OpenDoorMass) {
 		DoorLastOpenTime = GetWorld()->GetTimeSeconds();
 		TimerStarted = true;
 		UE_LOG(LogTemp, Warning, TEXT("Timer has started"));
 		
 	}
-	else if (!DoorIsClosed && TimerStarted && !PressurePlate->IsOverlappingActor(ActorThatOpens) && GetWorld()->GetRealTimeSeconds() - DoorLastOpenTime > DoorCloseDelay) {
+	else if (!DoorIsClosed && TimerStarted && GetTotalMassOfActorsOnPlate() < OpenDoorMass && GetWorld()->GetRealTimeSeconds() - DoorLastOpenTime > DoorCloseDelay) {
 		OpenOrCloseDoor(-OpenAngle);
 		TimerStarted = false;
 		DoorIsClosed = true;
 		UE_LOG(LogTemp, Warning, TEXT("Actor closed door"));
 	}
-	
-
-	// ...
 }
 
+float UOpenDoor::GetTotalMassOfActorsOnPlate() {
+	float TotalMass = 0.f;
+	TArray<AActor*> OverlappingActors;
+	PressurePlate->GetOverlappingActors(OUT OverlappingActors);
+	for (const auto* Actor : OverlappingActors) {
+		TotalMass += Actor->FindComponentByClass<UPrimitiveComponent>()->GetMass();
+		UE_LOG(LogTemp, Warning, TEXT("Name of object: %s"), *Actor->GetName())
+
+	}
+	return TotalMass;
+}
